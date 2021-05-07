@@ -3,27 +3,30 @@ import React, { useState, useEffect } from "react";
 const ToDo = () => {
 	const [newTask, setNewTask] = useState("");
 	const [toDoList, setToDoList] = useState([]);
+	const [alert, setAlert] = useState("");
+	const [successful, setSuccessful] = useState("");
 
 	useEffect(() => {
-		getData();
+		fetch("https://assets.breatheco.de/apis/fake/todos/user/cristhofert")
+			.then(res => res.json())
+			.then(data => {
+				setToDoList(data);
+			})
+			.catch(error => setAlert(`GET ERROR: ${error}`));
 	}, []);
 
 	const add = e => {
 		e.preventDefault();
-		setToDoList(prev => [...prev, { label: newTask, done: false }]);
+		let newList = [...toDoList, { label: newTask, done: false }];
+		setToDoList(newList);
 		setNewTask("");
-		updateData(toDoList);
+		updateData(newList);
 	};
 
 	const remove = index => e => {
-		setToDoList(prev => prev.filter((item, i) => i != index));
-	};
-
-	const getData = () => {
-		fetch("https://assets.breatheco.de/apis/fake/todos/user/cristhofert")
-			.then(res => res.json())
-			.then(data => setToDoList(data))
-			.catch(error => console.log(error, "ERROR"));
+		let newList = toDoList.filter((item, i) => i != index);
+		setToDoList(newList);
+		updateData(newList);
 	};
 
 	const updateData = items => {
@@ -35,8 +38,10 @@ const ToDo = () => {
 			}
 		})
 			.then(res => res.json())
-			.then(data => console.log(data.result))
-			.catch(err => console.log(err, "PUT ERROR!"));
+			.then(data => {
+				setSuccessful(data.result);
+			})
+			.catch(err => setAlert(`UPDATE ERROR: ${err}`));
 	};
 
 	return (
@@ -69,6 +74,7 @@ const ToDo = () => {
 								</div>
 							</form>
 						</li>
+
 						{toDoList.length === 0 ? (
 							<li className="list-group-item">Cargando...</li>
 						) : (
@@ -82,6 +88,24 @@ const ToDo = () => {
 									</div>
 								</li>
 							))
+						)}
+						{alert != "" ? (
+							<li className="list-group-item">
+								<div className="alert alert-danger">
+									{alert}
+								</div>
+							</li>
+						) : (
+							""
+						)}
+						{successful != "" ? (
+							<li className="list-group-item">
+								<div className="alert alert-success">
+									{successful}
+								</div>
+							</li>
+						) : (
+							""
 						)}
 					</ul>
 				</div>
